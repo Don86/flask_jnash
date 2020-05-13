@@ -5,6 +5,8 @@ from datetime import datetime
 
 @app.route("/")
 def index():
+    print(app.config["DB_NAME"])
+
     return render_template("public/index.html")
 
 @app.route("/about")
@@ -130,4 +132,25 @@ def json():
 
     return res
 
-# Async requests
+# Async requests with Fetch API
+# in a guestbook function
+@app.route("/guestbook")
+def geustbook():
+    return render_template("public/guestbook.html")
+
+@app.route("/guestbook/create-entry", methods=["POST"])
+def create_entry():
+
+    req = request.get_json()
+    print(req)
+
+    res = make_response(jsonify(req), 200)
+
+    return res
+
+# dynamic query strings example; not much to it
+@app.route("/query")
+def query():
+    if request.args: 
+        print(request.args)
+    return "Query received", 200
