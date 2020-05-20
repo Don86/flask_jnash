@@ -16,7 +16,11 @@ class Config(object):
     UPLOADS_DIR = "home/username/app/app/static/images/uploads"
 
     # will only send cookies back and forth if there's a secure https connection
-    SESSOIN_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+
+    # dummy public folder for download-access
+    CLIENT_FILES = ""
+    CLIENT_REPORTS = ""
 
 class ProductionConfig(Config):
     pass
@@ -30,7 +34,9 @@ class DevelopmentConfig(Config):
 
     UPLOADS_DIR = "home/username/projects/flask_test/app/app/static/images/uploads"
 
-    SESSOIN_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+    CLIENT_FILES = "/Users/don/Documents/flask_jnash/app/static/client"
+    CLIENT_REPORTS = "/Users/don/Documents/flask_jnash/app/static/client/reports"
 
 class TestingConfig(Config):
     TESTING = True
@@ -41,4 +47,4 @@ class TestingConfig(Config):
 
     UPLOADS_DIR = "home/username/projects/flask_test/app/app/static/images/uploads"
 
-    SESSOIN_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False

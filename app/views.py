@@ -1,6 +1,6 @@
 # this import still confuses me
 from app import app
-from flask import render_template, request, redirect, jsonify, make_response
+from flask import render_template, request, redirect, jsonify, make_response, send_from_directory, abort
 from flask_wtf import FlaskForm # flask_wtf is a thin wrapper over WTforms
 from wtforms import StringField, PasswordField
 from datetime import datetime
@@ -172,10 +172,8 @@ def geustbook():
 
 @app.route("/guestbook/create-entry", methods=["POST"])
 def create_entry():
-
     req = request.get_json()
     print(req)
-
     res = make_response(jsonify(req), 200)
 
     return res
@@ -243,3 +241,41 @@ def upload_image():
 
     return render_template("public/upload_image.html")
 
+# ============================== FILE DOWNLOADS ==============================
+# Allocate a single dir at app/static/client for public access
+# files available for download access will be kept only here
+# do NOT use send_file(), because it's not secure
+
+# app.config["CLIENT_FILES"] specified in config.py
+@app.route("/get-image/<string:image_name>")
+def get_image(image_name):
+    try:
+        return send_from_directory(
+            app.config["CLIENT_FILES"], 
+            filename=image_name, 
+            as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
+
+@app.route("/get-csv/<string:filename>")
+def get_csv(filename):
+    try:
+        return send_from_directory(
+            app.config["CLIENT_FILES"], 
+            filename=filename, 
+            as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
+
+# Demo using the path variable
+# Not very user-friendly way of doing things, though
+# folder structure is there, but not populated with files
+@app.route("/get-report/<path:path>")
+def get_report(path):
+    try:
+        return send_from_directory(
+            app.config["CLIENT_REPORTS"], 
+            filename=path, 
+            as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
