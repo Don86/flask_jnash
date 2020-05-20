@@ -1,6 +1,7 @@
 # this import still confuses me
 from app import app
 from flask import render_template, request, redirect, jsonify, make_response
+from flask_wtf import FlaskForm
 from datetime import datetime
 import os
 
@@ -16,6 +17,8 @@ def index():
 def about():
     return render_template("public/about.html")
 
+# Sign-up web page to demo forms
+# This version is vanilla and NOT secure
 @app.route("/sign-up", methods=["GET", "POST"])
 def sign_up():
     if request.method == "POST":
@@ -28,6 +31,15 @@ def sign_up():
         return redirect(request.url)
 
     return render_template("public/sign_up.html")
+
+
+# Secure forms using flask-WTF. Grabbed from PrettyPrinted YT Channel
+# Needs a secret key:
+app.config["SECRET_KEY"] = "Thisisasecretkey!"
+@app.route("/secure_forms", methods=["GET", "POST"])
+def secure_forms():
+    return render_template("public/secure_form.html")
+
 
 @app.template_filter("clean_date")
 def clean_date(dt):
