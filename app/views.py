@@ -1,7 +1,8 @@
 # this import still confuses me
 from app import app
 from flask import render_template, request, redirect, jsonify, make_response
-from flask_wtf import FlaskForm
+from flask_wtf import FlaskForm # flask_wtf is a thin wrapper over WTforms
+from wtforms import StringField, PasswordField
 from datetime import datetime
 import os
 
@@ -33,18 +34,34 @@ def sign_up():
     return render_template("public/sign_up.html")
 
 
+# ==================== SECURE FORMS WITH WTFORMS ====================
 # Secure forms using flask-WTF. Grabbed from PrettyPrinted YT Channel
+# see also: http://wtforms.simplecodes.com/docs/0.6/fields.html#basic-fields
 # Needs a secret key:
 app.config["SECRET_KEY"] = "Thisisasecretkey!"
-@app.route("/secure_forms", methods=["GET", "POST"])
-def secure_forms():
-    return render_template("public/secure_form.html")
+
+class LoginForm(FlaskForm):
+    username = StringField("username")
+    password = PasswordField("password")
+
+@app.route("/secure_form", methods=["GET", "POST"])
+def secure_form():
+    form = LoginForm() # instantiate FlaskForm instance
+
+    # Grab POSTed values on submit:
+    if form.validate_on_submit():
+        print(f"username = {form.username.data}, password is {form.password.data}")
+        return redirect(request.url)
+
+    # the form=form flag then passes `form` to secure_form.html
+    return render_template("public/secure_form.html", form=form)
 
 
 @app.template_filter("clean_date")
 def clean_date(dt):
     return dt.strftime("%d %b %Y")
 
+# ============================== JINJA ==============================
 @app.route("/jinja")
 def jinja():
  
@@ -107,7 +124,7 @@ users_dict = {
         "twitter_handle": "@failbaddon"
     }
 }
-
+# ============================== DYNAMIC URLS ==============================
 # Dynamic urls for users
 @app.route("/profile/<username>")
 def profile(username):
@@ -170,7 +187,7 @@ def query():
         print(request.args)
     return "Query received", 200
 
-# Example route to demo file uploading
+# ============================== FILE UPLOADS ==============================
 # This example will upload an image
 
 # set a path to save images to
@@ -225,3 +242,4 @@ def upload_image():
             return redirect(request.url)
 
     return render_template("public/upload_image.html")
+

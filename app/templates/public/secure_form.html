@@ -6,7 +6,18 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1>Home</h1>
+            <h1>Secure Form with WTForms</h1>
+            <hr>
+            <!-- form object/thingy grabbed from route secure_form() -->
+            <form method="POST" action="{{ url_for('secure_form') }}">
+                <!-- FlaskFrom properties (not exactly class attributes) can be rendered with jinja -->
+                {{ form.csrf_token }}
+                {{ form.username.label }}
+                {{ form.username }}
+                {{ form.password.label }}
+                {{ form.password }}
+                <input type="submit" value="Submit">
+            </form>
         </div>
     </div>
 </div>
