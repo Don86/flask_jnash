@@ -378,3 +378,8 @@ def sign_up():
     return render_template("public/sign_up.html")
 
 # ============================== ERROR HANDLING ==============================
+# Error handling routing logic contained in error_handlers.py
+@app.route("/proc-500")
+def proc_server_error():
+    abort(500)
+    return render_template("public/indxe.html")
