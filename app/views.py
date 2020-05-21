@@ -1,12 +1,41 @@
 # this import still confuses me
 from app import app
-from flask import render_template, request, redirect, jsonify, make_response, send_from_directory, abort
+from flask import render_template, request, redirect, jsonify, make_response, send_from_directory, abort, url_for, flash
 from flask_wtf import FlaskForm # flask_wtf is a thin wrapper over WTforms
 from wtforms import StringField, PasswordField
 from datetime import datetime
 import os
 
 from werkzeug.utils import secure_filename
+
+# Mock data
+# Note that the users_dict keys must be equal to the "username" attrib for this to work
+users_dict = {
+    "Squishy Baby":{
+        "username": "Squishy Baby",
+        "bio": "The squishiest baby",
+        "twitter_handle": "@squish_squish",
+        "password": "password1234"
+    },
+    "Bjorn the Fell-handed": {
+        "username": "Bjorn the Fell-handed",
+        "bio": "Venerable Dreadnought of the Space Wolves", 
+        "twitter_handle": "@in_the_emporers_name",
+        "password":"password1234"
+    },
+    "Roboute Guilliman": {
+        "username": "Roboute Guilliman",
+        "bio": "Primarch of the Ultramarines",
+        "twitter_handle": "@rowboat_girlyman",
+        "password":"password1234"
+    },
+    "Ezekyle Abaddon": {
+        "username": "Ezekyle Abaddon",
+        "bio": "Warmaster of Chaos", 
+        "twitter_handle": "@failbaddon",
+        "password":"password1234"
+    }
+}
 
 @app.route("/")
 def index():
@@ -20,8 +49,10 @@ def about():
 
 # Sign-up web page to demo forms
 # This version is vanilla and NOT secure
-@app.route("/sign-up", methods=["GET", "POST"])
-def sign_up():
+# commented out in favour of another sign_up route below
+"""
+@app.route("/sign-up-deprecated", methods=["GET", "POST"])
+def sign_up_deprecated():
     if request.method == "POST":
         req_dict = request.form
         # grabs all POST request data as dict
@@ -32,7 +63,7 @@ def sign_up():
         return redirect(request.url)
 
     return render_template("public/sign_up.html")
-
+"""
 
 # ==================== SECURE FORMS WITH WTFORMS ====================
 # Secure forms using flask-WTF. Grabbed from PrettyPrinted YT Channel
@@ -106,26 +137,9 @@ def jinja():
     t0=t0,
     my_html=my_html)
 
-# Mock data
-users_dict = {
-    "bjornthefellhanded": {
-        "name": "Bjorn the Fell-handed",
-        "bio": "Venerable Dreadnought of the Space Wolves", 
-        "twitter_handle": "@in_the_emporers_name"
-    },
-    "robouteguilliman": {
-        "name": "Roboute Guilliman",
-        "bio": "Primarch of the Ultramarines",
-        "twitter_handle": "@rowboat_girlyman"
-    },
-    "abaddon": {
-        "name": "Ezekyle Abaddon",
-        "bio": "Warmaster of Chaos", 
-        "twitter_handle": "@failbaddon"
-    }
-}
 # ============================== DYNAMIC URLS ==============================
 # Dynamic urls for users
+"""
 @app.route("/profile/<username>")
 def profile(username):
 
@@ -136,6 +150,7 @@ def profile(username):
         user = users_dict[username] # user is a dict
 
     return render_template("public/profile.html", username=username, user=user)
+"""
 
 # Another silly example of dynamic urls
 @app.route("/multiple/<foo>/<bar>/<baz>")
@@ -209,8 +224,7 @@ def allowed_image(filename):
 
 
 def allowed_image_filesize(filesize):
-    """Filesize check.
-    """
+    """Filesize check."""
     if int(filesize) <= app.config["MAX_IMAGE_FILESIZE"]:
         return True
     else:
@@ -279,3 +293,88 @@ def get_report(path):
             as_attachment=True)
     except FileNotFoundError:
         abort(404)
+
+# ============================== FLASK SESSIONS ==============================
+# Sessions are sufficiently elaborate to require their own note: see note-sessions.md
+
+# you'll need to set a session-specific secret key 
+# to encode the session obj
+app.config["SECRET_KEY"] = "9PYROHT5kaPCyHUC"
+
+from flask import session
+# Note that this sign-in has no relation to the "/sign-up" route
+# Also note that this route is to demo sessions only, and has the security of damp tissue
+@app.route("/sign-in", methods=["GET", "POST"])
+def sign_in():
+    if request.method == "POST":
+        req = request.form
+        print(req)
+
+        username = req.get("username")
+        password = req.get("password")
+
+        if username not in users_dict:
+            print("username not found!")
+            return redirect(request.url)
+        else:
+            user = users_dict[username]
+
+        if password != user["password"]:
+            print("Invalid password")
+            return redirect(request.url)
+        else:
+            # Now we start using a session
+            # Store user's username in session
+            session["USERNAME"] = user["username"]
+            print("User added to session")
+            return redirect(url_for("user_profile"))
+
+    # see note on why session cookie values are not secure
+    return render_template("public/sign_in.html")
+
+@app.route("/profile")
+def user_profile():
+    """Distinct from the profile() method."""
+
+    # If there's a USERNAME associated with the session dictionary
+    if session.get("USERNAME", None) is not None:
+        username = session.get("USERNAME")
+        print(username)
+        user = users_dict[username]
+        return render_template("public/profile.html", user=user)
+    else:
+        print("Username not found in session")
+        return redirect(url_for("sign_in"))
+
+@app.route("/sign-out")
+def sign_out():
+    """If there is no session["USERNAME"], this redirects the /profile route to /sign-in"""
+    session.pop("USERNAME")
+
+    return redirect(url_for("sign_in"))
+
+# ============================== MESSAGE FLASHING ==============================
+# Message flashing, demonstrated within sign-up functionality
+@app.route("/sign-up", methods=["GET", "POST"])
+def sign_up():
+
+    print(type(request))
+    if request.method == "POST":
+        req = request.form
+
+        username = req["username"]
+        email = req["email"]
+        password = req["password"] 
+
+        if not len(password) >= 10:
+            # Good idea to name your categories as a substring in bs4 classes
+            flash("Password must be at least 10 characters long!", "warning")
+            return redirect(request.url)
+
+        print(username, email, password)
+        flash("Account created!", "success")
+        return redirect(request.url)
+
+    return render_template("public/sign_up.html")
+
+# ============================== ERROR HANDLING ==============================

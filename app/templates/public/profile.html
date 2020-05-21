@@ -15,9 +15,9 @@
                 <div class="card-body">
                     <h4>{{ username }}</h4>
                     <hr>
-                    <!-- Jinja to validate is user exists -->
+                    <!-- Jinja to validate if user exists -->
                     {% if user %}
-                    <p><strong>{{ user["name"] }}</strong></p>
+                    <p><strong>{{ user["username"] }}</strong></p>
                     <p class="text-muted">{{ user["bio"] }}</p>
                     <p><em>{{ user["twitter_handle"] }}</em></p>
                     {% else %}
