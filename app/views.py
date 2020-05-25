@@ -382,4 +382,4 @@ def sign_up():
 @app.route("/proc-500")
 def proc_server_error():
     abort(500)
-    return render_template("public/indxe.html")
+    return render_template("public/index.html")
